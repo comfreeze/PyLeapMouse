@@ -13,6 +13,7 @@ from Xlib.ext import randr
 d = display.Display()
 s = d.screen()
 print 'Width: {}, Height: {}'.format(s.width_in_pixels, s.height_in_pixels)
+print 'Screens Detected: {}'.format(d.screen_count())
 # window = s.root.create_window(0, 0, 1, 1, 1, s.root_depth)
 # res = randr.get_screen_resources(window)
 # for mode in res.modes:
@@ -20,8 +21,11 @@ print 'Width: {}, Height: {}'.format(s.width_in_pixels, s.height_in_pixels)
 #     print "Width: {}, Height: {}".format(w, h)
 
 class Finger_Control_Listener(Leap.Listener):  #The Listener that we attach to the controller. This listener is for pointer finger movement
-    # Last Touch
-    lt = 0
+    # Last Touch, Finger Count
+    lt, fc = 0, 0
+    # Finger Positions
+    # fpos = {}
+    fstate = {'INDEX':False}
     def __init__(self, mouse, smooth_aggressiveness=8, smooth_falloff=1.3):
         super(Finger_Control_Listener, self).__init__()  #Initialize like a normal listener
         #Initialize a bunch of stuff specific to this implementation
@@ -44,34 +48,77 @@ class Finger_Control_Listener(Leap.Listener):  #The Listener that we attach to t
     def on_exit(self, controller):
         print "Exited"
 
+    def fingerType(self, finger):
+        if finger.type == Leap.Finger.TYPE_THUMB:
+            return 'THUMB'
+        elif finger.type == Leap.Finger.TYPE_INDEX:
+            return 'INDEX'
+        elif finger.type == Leap.Finger.TYPE_MIDDLE:
+            return 'MIDDLE'
+        elif finger.type == Leap.Finger.TYPE_RING:
+            return 'RING'
+        elif finger.type == Leap.Finger.TYPE_PINKY:
+            return 'PINKY'
+        return 'UNKNOWN'
+
+    def touchZone(self, finger):
+        if finger.touch_zone == Leap.Finger.ZONE_NONE:
+            return 'NONE'
+        elif finger.touch_zone == Leap.Finger.ZONE_HOVERING:
+            return 'HOVERING'
+        elif finger.touch_zone == Leap.Finger.ZONE_TOUCHING:
+            return 'TOUCHING'
+        return 'UNKNOWN'
+
     def on_frame(self, controller):
         frame = controller.frame()  #Grab the latest 3D data
+        finger_count = len(frame.fingers)
+        if finger_count != self.fc:
+            self.fc = finger_count
+        if finger_count < 1:
+            self.fstate = {'INDEX':False}
+            return
         finger = frame.fingers.frontmost
+        for f in frame.fingers:
+            if f.type == Leap.Finger.TYPE_INDEX:
+                finger = f
         stabilizedPosition = finger.stabilized_tip_position
         interactionBox = frame.interaction_box
         normalizedPosition = interactionBox.normalize_point(stabilizedPosition)
-        if finger.touch_zone != self.lt:
-            print 'finger touch zone: {}'.format(finger.touch_zone)
-            self.lt = finger.touch_zone
-        if finger.touch_zone > 0:
-            finger_count = len(frame.fingers)
-            if finger.touch_zone == 1:
-                self.cursor.set_left_button_pressed(False)
-                if finger_count < 5:
-                    self.cursor.move(normalizedPosition.x * self.screen_resolution[0], self.screen_resolution[1] - normalizedPosition.y * self.screen_resolution[1])
-                elif finger_count == 5:
-                    finger_velocity = finger.tip_velocity
-                    x_scroll = self.velocity_to_scroll_amount(finger_velocity.x)
-                    y_scroll = self.velocity_to_scroll_amount(finger_velocity.y)
-                    self.cursor.scroll(x_scroll, y_scroll)
-                else:
-                    print "Finger count: %s" % finger_count
-            elif finger.touch_zone == 2:
-                if finger_count == 1:
-                    self.cursor.set_left_button_pressed(True)
-                elif finger_count == 2:
-                    self.cursor.set_left_button_pressed(True)
-                    self.cursor.move(normalizedPosition.x * self.screen_resolution[0], self.screen_resolution[1] - normalizedPosition.y * self.screen_resolution[1])
+        fstate = '{}-{}'.format(self.fingerType(finger), self.touchZone(finger))
+        newX = normalizedPosition.x * self.screen_resolution[0]
+        newY = self.screen_resolution[1] - normalizedPosition.y * self.screen_resolution[1]
+        print 'Normalized Position: {} x {}'.format(newX, newY)
+        self.cursor.move(newX, newY)
+        if finger.id in self.fstate.keys() \
+                and self.fstate[finger.id] != fstate \
+                or finger.id not in self.fstate.keys():
+            self.fstate[finger.id] = '{}'.format(fstate)
+            # if self.touchZone(finger) == 'NONE':
+            #     self.cursor.set_left_button_pressed(False)
+            # else:
+            #     self.fstate['INDEX'] = False if self.fstate['INDEX'] else True
+            #     self.cursor.set_left_button_pressed(self.fstate['INDEX'])
+            print 'Finger: {}, {}, {}'.format(finger.id, self.fingerType(finger), self.touchZone(finger))
+
+        # if finger.touch_zone > 0:
+        #     if finger.touch_zone == 1:
+        #         self.cursor.set_left_button_pressed(False)
+        #         if finger_count < 5:
+        #             self.cursor.move(normalizedPosition.x * self.screen_resolution[0], self.screen_resolution[1] - normalizedPosition.y * self.screen_resolution[1])
+        #         elif finger_count == 5:
+        #             finger_velocity = finger.tip_velocity
+        #             x_scroll = self.velocity_to_scroll_amount(finger_velocity.x)
+        #             y_scroll = self.velocity_to_scroll_amount(finger_velocity.y)
+        #             self.cursor.scroll(x_scroll, y_scroll)
+        #         else:
+        #             print "Finger count: %s" % finger_count
+        #     elif finger.touch_zone == 2:
+        #         if finger_count == 1:
+        #             self.cursor.set_left_button_pressed(True)
+        #         elif finger_count == 2:
+        #             self.cursor.set_left_button_pressed(True)
+        #             self.cursor.move(normalizedPosition.x * self.screen_resolution[0], self.screen_resolution[1] - normalizedPosition.y * self.screen_resolution[1])
         #if(finger.touch_distance > -0.3 and finger.touch_zone != Leap.Pointable.ZONE_NONE):
 	    #self.cursor.set_left_button_pressed(False)
 	    #self.cursor.move(normalizedPosition.x * self.screen_resolution[0], self.screen_resolution[1] - normalizedPosition.y * self.screen_resolution[1])
