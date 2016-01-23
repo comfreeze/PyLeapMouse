@@ -78,6 +78,13 @@ Geometry.py: Geometric functions
 MiscFunctions.py: Things that aren't strictly geometry and aren't specific to any interface style
 README.md: You are here
 
+###Linux:
+For Ubuntu 15.04:
+```
+apt-get install pip python-xlib
+pip install pyuserinput
+```
+
 ###Advanced Options:
 `--smooth-aggressiveness [value]` sets the number of samples to use for pointer finger mouse smoothing.
 `--smooth-falloff [value]` sets the rate at which previous samples lose importance.
