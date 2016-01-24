@@ -1,4 +1,5 @@
 import sys, os, ConfigParser
+import UserInterface as UI
 from leap import Leap, CircleGesture, KeyTapGesture, ScreenTapGesture, SwipeGesture
 
 
@@ -8,10 +9,9 @@ class MotionControlListener(
         super(MotionControlListener, self).__init__()  # Initialize like a normal listener
 
     def on_init(self, controller):
+        print UI.build_status(self.__class__.__name__, " Initialized")
         self.read_config()  # Read the config file
         self.init_list_of_commands()  # Initialize the list of recognized commands
-
-        print "Initialized"
 
     def read_config(self):
         self.config = ConfigParser.ConfigParser()
@@ -34,14 +34,13 @@ class MotionControlListener(
         controller.enable_gesture(Leap.Gesture.TYPE_KEY_TAP)
         controller.enable_gesture(Leap.Gesture.TYPE_SCREEN_TAP)
         controller.enable_gesture(Leap.Gesture.TYPE_SWIPE)
-
-        print "Connected"
+        print UI.build_status(self.__class__.__name__, " Connected")
 
     def on_disconnect(self, controller):
-        print "Disconnected"
+        print UI.build_status(self.__class__.__name__, " Disconnected")
 
     def on_exit(self, controller):
-        print "Exited"
+        print UI.build_status(self.__class__.__name__, " Exited")
 
     def on_frame(self, controller):
         frame = controller.frame()  # Grab the latest 3D data

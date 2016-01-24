@@ -2,11 +2,11 @@ from pymouse import PyMouse
 mouse = PyMouse()
 
 def AbsoluteMouseMove(posx,posy):
-    print 'move to', posx, posy
+    # print 'move to', posx, posy
     mouse.move(int(posx), int(posy))
 
 def AbsoluteMouseClick(posx,posy):
-    print 'click on ', posx, posy
+    # print 'click on ', posx, posy
     mouse.click(posx, posy)
 
 def AbsoluteMouseClickDown(posx, posy):

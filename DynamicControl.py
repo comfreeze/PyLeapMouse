@@ -4,11 +4,12 @@
 
 
 import math
+import UserInterface as UI
 import Geometry
 from leap import Leap, Mouse
 from MiscFunctions import *
 
-print 'Width: {}, Height: {}'.format(Mouse.GetDisplayWidth(), Mouse.GetDisplayHeight())
+# print 'Width: {}, Height: {}'.format(Mouse.GetDisplayWidth(), Mouse.GetDisplayHeight())
 
 
 # The Listener that we attach to the controller. This listener is for pointer finger movement
@@ -34,16 +35,16 @@ class DynamicControlListener(Leap.Listener):
         self.most_recent_pointer_finger_id = None
 
     def on_init(self, controller):
-        print self.__class__.__name__ + " Initialized"
+        print UI.build_status(self.__class__.__name__, " Initialized")
 
     def on_connect(self, controller):
-        print self.__class__.__name__ + " Connected"
+        print UI.build_status(self.__class__.__name__, " Connected")
 
     def on_disconnect(self, controller):
-        print self.__class__.__name__ + " Disconnected"
+        print UI.build_status(self.__class__.__name__, " Disconnected")
 
     def on_exit(self, controller):
-        print self.__class__.__name__ + " Exited"
+        print UI.build_status(self.__class__.__name__, " Exited")
 
     @staticmethod
     def finger_type(finger):
@@ -96,13 +97,13 @@ class DynamicControlListener(Leap.Listener):
                 and self.fstate[finger.id] != f_state \
                 or finger.id not in self.fstate.keys():
             self.fstate[finger.id] = '{}'.format(f_state)
-            if self.touch_zone(finger) == 'NONE':
-                self.cursor.set_left_button_pressed(False)
-            elif finger.is_extended:
-                self.fstate['INDEX'] = False if self.fstate['INDEX'] else True
-                self.cursor.set_left_button_pressed(self.fstate['INDEX'])
-            print 'Normalized Position: {} x {}'.format(new_x, new_y)
-            print 'Dynamic: {}, {}, {}'.format(finger.id, self.finger_type(finger), self.touch_zone(finger))
+            # if self.touch_zone(finger) == 'NONE':
+            #     self.cursor.set_left_button_pressed(False)
+            # elif finger.is_extended:
+            #     self.fstate['INDEX'] = False if self.fstate['INDEX'] else True
+            #     self.cursor.set_left_button_pressed(self.fstate['INDEX'])
+            print UI.build_status('Normalized Position', '{} x {}'.format(new_x, new_y))
+            print UI.build_status('Dynamic', '{}, {}, {}'.format(finger.id, self.finger_type(finger), self.touch_zone(finger)))
 
             # if finger.touch_zone > 0:
             #     if finger.touch_zone == 1:

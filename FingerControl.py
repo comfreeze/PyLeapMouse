@@ -4,6 +4,7 @@
 
 
 import math
+import UserInterface as UI
 from leap import Leap, Mouse
 from MiscFunctions import *
 from Xlib import display
@@ -11,7 +12,6 @@ from Xlib import display
 # d = display.Display()
 # print 'Screens Detected: {}'.format(d.screen_count())
 # s = d.screen()
-print 'Width: {}, Height: {}'.format(Mouse.GetDisplayWidth(), Mouse.GetDisplayHeight())
 
 
 # window = s.root.create_window(0, 0, 1, 1, 1, s.root_depth)
@@ -44,16 +44,16 @@ class FingerControlListener(Leap.Listener):
         self.most_recent_pointer_finger_id = None
 
     def on_init(self, controller):
-        print "Initialized"
+        print UI.build_status(self.__class__.__name__, " Initialized")
 
     def on_connect(self, controller):
-        print "Connected"
+        print UI.build_status(self.__class__.__name__, " Connected")
 
     def on_disconnect(self, controller):
-        print "Disconnected"
+        print UI.build_status(self.__class__.__name__, " Disconnected")
 
     def on_exit(self, controller):
-        print "Exited"
+        print UI.build_status(self.__class__.__name__, " Exited")
 
     @staticmethod
     def finger_type(finger):

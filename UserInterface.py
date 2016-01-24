@@ -1,130 +1,189 @@
+import sys
+import termios
 import colorama as colors
 import string
+from leap import Mouse
 
 # Defaults
 console_width = 104
 controls = {
-    'dynamic':      'Dynamic pointer control',
-    'finger':       'Finger based pointer',
-    'motion':       'Motion/gesture based pointer',
-    'palm':         'Palm based pointer'
+    'dynamic': 'Dynamic pointer control',
+    'finger': 'Finger based pointer',
+    'motion': 'Motion/gesture based pointer',
+    'palm': 'Palm based pointer'
 }
 commands = {
-    'help':         'List general help',
-    'info':         'List current settings',
-    'quit':         'Quit the application'
+    'help': 'List general help',
+    'info': 'List current settings',
+    'quit/exit': 'Quit the application'
 }
 customizations = {
-    'aggression':   'Smoothing aggressiveness (INT)',
-    'falloff':      'Smoothing falloff (FLOAT)',
-    'width':        'Adjust console width (INT)'
+    'aggression': 'Smoothing aggressiveness (INT)',
+    'falloff': 'Smoothing falloff (FLOAT)',
+    'width': 'Adjust console width (INT)'
 }
-
 
 # Initialize console colorization
 colors.init(autoreset=True)
-HEADER = colors.Fore.GREEN
-TITLE = colors.Fore.CYAN
-MESSAGE = colors.Fore.BLUE
-ERROR = colors.Fore.RED
-WARNING = colors.Fore.YELLOW
-INFO = colors.Fore.WHITE
-BLUE = colors.Fore.BLUE
-CYAN = colors.Fore.CYAN
-WHITE = colors.Fore.WHITE
-YELLOW = colors.Fore.YELLOW
 END = colors.Fore.RESET + colors.Style.RESET_ALL
-#  White             Blue            Cyan
-APOS_WHITE,         APOS_BLUE,      APOS_CYAN = \
-    WHITE + '\'',   BLUE + '\'',    CYAN + '\''
-BAR_WHITE,          BAR_BLUE,       BAR_CYAN = \
-    WHITE + '|',    BLUE + '|',     CYAN + '|'
-OPEN_WHITE,         OPEN_BLUE,      OPEN_CYAN = \
-    WHITE + '[',    BLUE + '[',     CYAN + '['
-CLOSE_WHITE,        CLOSE_BLUE,     CLOSE_CYAN = \
-    WHITE + ']',    BLUE + ']',     CYAN + ']'
-LT_WHITE,           LT_BLUE,        LT_CYAN = \
-    WHITE + '<',    BLUE + '<',     CYAN + '<'
-GT_WHITE,           GT_BLUE,        GT_CYAN = \
-    WHITE + '>',    BLUE + '>',     CYAN + '>'
-DASH_WHITE,         DASH_BLUE,      DASH_CYAN = \
-    WHITE + '-',    BLUE + '-',     CYAN + '-'
-DOT_WHITE,          DOT_BLUE,       DOT_CYAN = \
-    WHITE + '.',    BLUE + '.',     CYAN + '.'
-EQUAL_WHITE,        EQUAL_BLUE,     EQUAL_CYAN = \
-    WHITE + '=',    BLUE + '=',     CYAN + '='
-HASH_WHITE,         HASH_BLUE,      HASH_CYAN = \
-    WHITE + '#',    BLUE + '#',     CYAN + '#'
 
 
-def header(title='PyLeapMouse'):
-    print DOT_WHITE + DASH_CYAN + EQUAL_CYAN + EQUAL_CYAN + BLUE \
-        + string.center(build_title(title) + BLUE, console_width, '=') \
-        + EQUAL_CYAN + EQUAL_CYAN + DASH_CYAN + DOT_WHITE + END
+class ColorUtil(object):
+    def __init__(self):
+        super(ColorUtil, self).__init__()
+
+    @staticmethod
+    def t(text, color):
+        return color + text
+
+    @staticmethod
+    def w(text=''):
+        return ColorUtil.t(text, colors.Fore.WHITE)
+
+    @staticmethod
+    def c(text=''):
+        return ColorUtil.t(text, colors.Fore.CYAN)
+
+    @staticmethod
+    def b(text=''):
+        return ColorUtil.t(text, colors.Fore.BLUE)
+
+    @staticmethod
+    def y(text=''):
+        return ColorUtil.t(text, colors.Fore.YELLOW)
+
+    @staticmethod
+    def r(text=''):
+        return ColorUtil.t(text, colors.Fore.RED)
+
+    @staticmethod
+    def m(text=''):
+        return ColorUtil.t(text, colors.Fore.MAGENTA)
+
+    @staticmethod
+    def bl(text=''):
+        return ColorUtil.t(text, colors.Fore.BLACK)
 
 
-def footer(title='PyLeapMouse'):
-    print APOS_WHITE + DASH_CYAN + EQUAL_CYAN + EQUAL_CYAN + BLUE \
-        + string.center(build_title(title) + BLUE, console_width, '=') \
-        + EQUAL_CYAN + EQUAL_CYAN + DASH_CYAN + APOS_WHITE + END
+clr = ColorUtil
 
 
-def heading(title=''):
-    print BAR_WHITE + BLUE \
-        + string.center('' + BLUE, console_width - 24, ' ') \
-        + BAR_WHITE + END
-    print BAR_WHITE + GT_CYAN + EQUAL_CYAN + DASH_CYAN + BLUE \
-        + string.center(build_title(title) + BLUE, console_width, '-') \
-        + DASH_CYAN + EQUAL_CYAN + LT_CYAN + BAR_WHITE + END
+def spacer(wall=clr.w('|'), fill=' ', fill_color=clr.b()):
+    return wall + fill_color + string.center('' + fill_color, console_width - 30, fill) + wall + END
 
 
-def build_title(title=''):
-    return DASH_CYAN + EQUAL_CYAN + HASH_CYAN + '[ ' + title + ' ]' + HASH_CYAN + EQUAL_CYAN + DASH_CYAN
+def header(title='PyLeapMouse', wall=clr.w('.'), fill='-', fill_color=clr.b()):
+    return wall + fill_color + string.ljust(build_title(title) + fill_color, console_width, fill) + wall + END
 
 
-def build_definition(key='', value=''):
-    prefix = BAR_WHITE + ' ' + string.ljust(YELLOW + key + WHITE + ' ', 14, '.')
-    target_len = console_width - len(prefix) - 9
-    suffix = string.rjust(' ' + YELLOW + value, target_len, '.') + ' ' + BAR_WHITE + END
-    return prefix + suffix
+def footer(title='PyLeapMouse', wall=clr.w('\''), fill='-', fill_color=clr.b()):
+    return wall + fill_color + string.ljust(build_title(title) + fill_color, console_width, fill) + wall + END
+
+
+def heading(title='', wall=clr.w('|'), fill_color=clr.b(), fill='-',
+            surround_left=clr.c('>=-'),
+            surround_right=clr.c('-=<')):
+    return wall + surround_left + fill_color \
+           + string.rjust(build_title(title) + fill_color, console_width - 6, fill) \
+           + surround_right + wall + END
+
+
+def build_title(title='',
+                surround_left=clr.c('-=#[ '),
+                surround_right=clr.c(' ]#=-')):
+    return surround_left + title + surround_right
+
+
+def build_definition(key='', value='', wall=clr.w('|'), fill_color=clr.w(),
+                     fill='_', text_color=clr.y(), label_color=clr.y()):
+    return wall + ' ' + label_color + key + fill_color + ' ' \
+           + string.rjust(' ' + text_color + value, console_width - len(key) - 13, fill) \
+           + ' ' + wall + END
 
 
 def build_error(message, title='ERROR'):
-    header(title)
-    print build_definition(title, message)
-    footer(title)
+    return build_definition(title, message)
+
+
+def build_warning(message, title='WARNING'):
+    return build_definition(title, message)
+
+
+def build_info(message, title='INFO'):
+    return build_definition(title, message)
+
+
+def build_status_message(key='', value='', fill='_', wall=clr.w('|'), fill_color=clr.w(),
+                         text_color=clr.y(), label_color=clr.y()):
+    return wall + ' ' + label_color + value + fill_color + ' ' \
+           + (string.ljust(' ' + text_color + key + fill_color, console_width - len(value) - 8, fill)
+              if key is '' or key is None else
+              string.rjust(' ' + text_color + key + fill_color, console_width - len(value) - 8, fill)) + ' ' \
+           + wall + END
+
+
+def build_status(message, title=''):
+    return build_status_message(title, message, '.')
 
 
 def show_help():
-    header()
+    print header()
     print "Use --finger (or blank) for pointer finger control, and --palm for palm control."
     print "Set smooth aggressiveness (# samples) with \"--smooth-aggressiveness [# samples]\""
     print "Set smooth falloff with \"--smooth-falloff [% per sample]\""
     print "Read README.md for even more info.\n"
-    footer()
+    print footer()
 
 
 def show_info(mode, title='Current Settings'):
-    header()
-    build_dictionary({
-        'aggression':   str(mode.aggressiveness),
-        'falloff':      str(mode.falloff),
-        'width':        str(console_width)
+    # header()
+    show_status_dictionary({
+        'aggression': str(mode.aggressiveness),
+        'falloff': str(mode.falloff),
+        'width': str(console_width),
     }, title)
-    footer()
+    show_status_dictionary({
+        'screen width': str(Mouse.GetDisplayWidth()),
+        'screen height': str(Mouse.GetDisplayHeight())
+    }, 'Resolution')
+    # footer()
 
 
-def build_dictionary(items, title=''):
-    heading(title)
+def show_dictionary(items, title=''):
+    print heading(title)
     for k, v in items.iteritems():
         print build_definition(k, v)
 
 
+def show_status_dictionary(items, title=''):
+    print heading(title)
+    for k, v in items.iteritems():
+        print build_status(k, v)
+
+
 def console_help(control=None):
     global controls, commands, customizations
-    header()
+    print header()
     if control is None:
-        build_dictionary(controls, "Control Options")
-        build_dictionary(commands, "Commands")
-        build_dictionary(customizations, "Customizations")
-    footer()
+        show_dictionary(controls, "Control Options")
+        show_dictionary(commands, "Commands")
+        show_dictionary(customizations, "Customizations")
+    print footer()
+
+
+def get_input(prompt=''):
+    fd = sys.stdin
+    if fd.isatty():
+        old = termios.tcgetattr(fd)
+        new = termios.tcgetattr(fd)
+        new[3] = new[3] & ~termios.ECHO
+        try:
+            termios.tcsetattr(fd, termios.TCSANOW, new)
+            response = raw_input(prompt)
+            print '\r          \r',
+        finally:
+            termios.tcsetattr(fd, termios.TCSANOW, old)
+    else:
+        build_warning("Not a TTY")
+        response = fd.readline().rstrip()
+    return response

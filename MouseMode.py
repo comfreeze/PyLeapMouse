@@ -18,15 +18,26 @@ class MouseMode(object):
     def get_mode(self):
         return self.mode
 
+    def get_mode_string(self):
+        if self.mode == 1:
+            return 'DYNAMIC'
+        elif self.mode == 2:
+            return 'FINGER'
+        elif self.mode == 3:
+            return 'MOTION'
+        elif self.mode == 4:
+            return 'PALM'
+        return 'NONE'
+
     def set_aggressiveness(self, aggressiveness):
-        print "Aggression factor set to: {}".format(aggressiveness)
+        # print "Aggression factor set to: {}".format(aggressiveness)
         self.aggressiveness = aggressiveness
 
     def get_aggressiveness(self):
         return self.aggressiveness
 
     def set_falloff(self, falloff):
-        print "Falloff set to: {}".format(falloff)
+        # print "Falloff set to: {}".format(falloff)
         self.falloff = falloff
 
     def get_falloff(self):
