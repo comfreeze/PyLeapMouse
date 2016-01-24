@@ -43,3 +43,6 @@ class MouseMode(object):
 
     def is_palm(self):
         return self.get_mode() == self.MODE_PALM
+
+    def is_none(self):
+        return self.get_mode() == None
