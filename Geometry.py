@@ -18,6 +18,24 @@ def angle_between_vectors(vector1, vector2):
     return angle  # In radians
 
 
+def velocity_to_scroll_amount(velocity):  # Converts a finger velocity to a scroll velocity
+    # The following algorithm was designed to reflect what I think is a comfortable
+    # Scrolling behavior.
+    vel = velocity  # Save to a shorter variable
+    vel += math.copysign(300, vel)  # Add/subtract 300 to velocity
+    vel /= 150
+    vel **= 3  # Cube vel
+    vel /= 8
+    vel *= -1  # Negate direction, depending on how you like to scroll
+    return vel
+
+
+def angles_to_velocity(roll, pitch):  # Angles are in radians
+    x_movement = 5.0 * math.copysign((4.0 * math.sin(roll) + 2.0 * roll) * math.sin(roll), roll)
+    y_movement = 5.0 * math.copysign((4.0 * math.sin(pitch) + 2.0 * pitch) * math.sin(pitch), pitch)
+    return x_movement, y_movement
+
+
 class Vector(object):
     def __init__(self, x, y, z):
         self.x = x

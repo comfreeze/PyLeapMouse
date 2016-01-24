@@ -9,6 +9,9 @@ import Geometry
 
 
 # Smooths the mouse's position
+from leap import Leap
+
+
 class MousePositionSmoother(object):
     def __init__(self, smooth_aggressiveness, smooth_falloff):
         # Input validation
@@ -95,11 +98,59 @@ class FingerTools(object):
     def __init__(self, fingers):
         self.fingers = fingers
 
-    @staticmethod
-    def fingers_by_screen_distance(fingers):
-        new_finger_list = [finger for finger in fingers]  # Copy the list of fingers
+    def fingers_by_screen_distance(self):
+        new_finger_list = [finger for finger in self.fingers]  # Copy the list of fingers
         new_finger_list.sort(key=lambda x: x.tip_position.z)  # Sort by increasing z
         return new_finger_list  # Lower indices = closer to screen
+
+    def vectors_by_screen_distance(self):
+        vectors = []
+        for f in self.fingers_by_screen_distance():
+            t = f.tip_position
+            vectors.append(Geometry.Vector(t.x, t.y, t.z))
+        return vectors
+
+    def has_thumb(self):  # The level of accuracy with this function is surprisingly high
+        if self.fingers.empty:  # We assume no thumbs
+            return False
+        for finger in self.fingers:  # Make a list of all distances from the center of the palm
+            if finger.type == Leap.Finger.TYPE_THUMB:
+                return True
+        return False
+
+    def has_two_pointer_fingers(self):  # Checks if we are using two pointer fingers
+        if len(self.fingers) < 2:  # Obviously not
+            return False
+        sorted_vectors = self.vectors_by_screen_distance()
+        difference = sorted_vectors[0] - sorted_vectors[1]
+        if difference.norm() < 40:  # Check if the fingertips are close together
+            return True
+        return False
+
+    # Check if the vectors of length 'vector_length' shooting out of a pair of fingers intersect
+    #  within tolerance 'tolerance'
+    def finger_vectors_intersect(self, vector_length, tolerance):
+        # Take Leap Finger objects and produce two line segment objects
+        sorted_fingers = self.fingers_by_screen_distance()
+        finger1 = sorted_fingers[0]
+        finger2 = sorted_fingers[1]
+        finger_1_location = Geometry.to_vector(finger1.tip_position)
+        finger_1_direction = Geometry.to_vector(finger1.direction)
+        finger_1_vector = finger_1_direction.unit_vector() ** vector_length  # ** is scalar mult
+        finger_1_endpoint = finger_1_vector + finger_1_location
+        finger_1_segment = Geometry.Segment(finger_1_location, finger_1_endpoint)
+
+        finger_2_location = Geometry.to_vector(finger2.tip_position)
+        finger_2_direction = Geometry.to_vector(finger2.direction)
+        finger_2_vector = finger_2_direction.unit_vector() ** vector_length  # ** is scalar mult
+        finger_2_endpoint = finger_2_vector + finger_2_location
+        finger_2_segment = Geometry.Segment(finger_2_location, finger_2_endpoint)
+
+        minimum_distance = finger_1_segment.min_distance_finite(finger_2_segment)
+
+        if minimum_distance <= tolerance:
+            return True
+        return False
 
 
 def sort_fingers_by_distance_from_screen(fingers):

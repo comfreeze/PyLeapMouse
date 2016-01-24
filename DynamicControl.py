@@ -4,6 +4,7 @@
 
 
 import math
+import Geometry
 from leap import Leap, Mouse
 from MiscFunctions import *
 
@@ -33,16 +34,16 @@ class DynamicControlListener(Leap.Listener):
         self.most_recent_pointer_finger_id = None
 
     def on_init(self, controller):
-        print "Initialized"
+        print self.__class__.__name__ + " Initialized"
 
     def on_connect(self, controller):
-        print "Connected"
+        print self.__class__.__name__ + " Connected"
 
     def on_disconnect(self, controller):
-        print "Disconnected"
+        print self.__class__.__name__ + " Disconnected"
 
     def on_exit(self, controller):
-        print "Exited"
+        print self.__class__.__name__ + " Exited"
 
     @staticmethod
     def finger_type(finger):
@@ -70,6 +71,10 @@ class DynamicControlListener(Leap.Listener):
 
     def on_frame(self, controller):
         frame = controller.frame()  # Grab the latest 3D data
+        if not frame.hands.is_empty:  # Ensure a hand is available
+            if len(frame.hands) < 2:  # Single hand
+                self.do_mouse_stuff(frame.hands[0])
+            # else:  # 2+ hands
         finger_count = len(frame.fingers)
         if finger_count != self.fc:
             self.fc = finger_count
@@ -131,7 +136,7 @@ class DynamicControlListener(Leap.Listener):
         fingers = hand.fingers  # The list of fingers on said hand
         if not fingers.is_empty:  # Make sure we have some fingers to work with
             sorted_fingers = sort_fingers_by_distance_from_screen(fingers)  # Prioritize fingers by distance from screen
-            finger_velocity = sorted_fingers[0].tip_velocity  # Get the velocity of the forwardmost finger
+            finger_velocity = sorted_fingers[0].tip_velocity  # Get the velocity of the forward-most finger
             x_scroll = self.velocity_to_scroll_amount(finger_velocity.x)
             y_scroll = self.velocity_to_scroll_amount(finger_velocity.y)
             self.cursor.scroll(x_scroll, y_scroll)
@@ -148,32 +153,37 @@ class DynamicControlListener(Leap.Listener):
         vel *= -1  # Negate direction, depending on how you like to scroll
         return vel
 
-    def do_mouse_stuff(self, hand):  # Take a hand and use it as a mouse
-        fingers = hand.fingers  # The list of fingers on said hand
-        if not fingers.is_empty:  # Make sure we have some fingers to work with
-            pointer_finger = self.select_pointer_finger(fingers)  # Determine which finger to use
-
-            try:
-                intersection = self.screen.intersect(pointer_finger,
-                                                     True)  # Where the finger projection intersects with the screen
-                if not math.isnan(intersection.x) and not math.isnan(
-                        intersection.y):  # If the finger intersects with the screen
-                    x_coord = intersection.x * self.screen_resolution[0]  # x pixel of intersection
-                    y_coord = (1.0 - intersection.y) * self.screen_resolution[1]  # y pixel of intersection
-                    x_coord, y_coord = self.mouse_position_smoother.update((x_coord, y_coord))  # Smooth movement
-                    self.cursor.move(x_coord, y_coord)  # Move the cursor
-                    if has_thumb(hand):  # We've found a thumb!
-                        # We have detected a possible click. The debouncer ensures that we don't have click jitter
-                        self.mouse_button_debouncer.signal(True)
-                    else:
-                        self.mouse_button_debouncer.signal(False)  # Same idea as above (but opposite)
-
-                    # We need to push/unpush the cursor's button
-                    if self.cursor.left_button_pressed != self.mouse_button_debouncer.state:
-                        self.cursor.set_left_button_pressed(
-                                self.mouse_button_debouncer.state)  # Set the cursor to click/not click
-            except Exception as e:
-                print e
+    def do_mouse_stuff(self, hand):
+        hpn = hand.palm_normal
+        d = Geometry.Vector(hpn.x, hpn.y, hpn.z)
+        mouse_velocity = Geometry.angles_to_velocity(d.roll(), d.pitch())
+        self.cursor.move(mouse_velocity[0], mouse_velocity[1])
+        # # Take a hand and use it as a mouse
+        # fingers = hand.fingers  # The list of fingers on said hand
+        # if not fingers.is_empty:  # Make sure we have some fingers to work with
+        #     pointer_finger = self.select_pointer_finger(fingers)  # Determine which finger to use
+        #
+        #     try:
+        #         intersection = self.screen.intersect(pointer_finger,
+        #                                              True)  # Where the finger projection intersects with the screen
+        #         if not math.isnan(intersection.x) and not math.isnan(
+        #                 intersection.y):  # If the finger intersects with the screen
+        #             x_coord = intersection.x * self.screen_resolution[0]  # x pixel of intersection
+        #             y_coord = (1.0 - intersection.y) * self.screen_resolution[1]  # y pixel of intersection
+        #             x_coord, y_coord = self.mouse_position_smoother.update((x_coord, y_coord))  # Smooth movement
+        #             self.cursor.move(x_coord, y_coord)  # Move the cursor
+        #             if has_thumb(hand):  # We've found a thumb!
+        #                 # We have detected a possible click. The debouncer ensures that we don't have click jitter
+        #                 self.mouse_button_debouncer.signal(True)
+        #             else:
+        #                 self.mouse_button_debouncer.signal(False)  # Same idea as above (but opposite)
+        #
+        #             # We need to push/unpush the cursor's button
+        #             if self.cursor.left_button_pressed != self.mouse_button_debouncer.state:
+        #                 self.cursor.set_left_button_pressed(
+        #                         self.mouse_button_debouncer.state)  # Set the cursor to click/not click
+        #     except Exception as e:
+        #         print e
 
     def select_pointer_finger(self, possible_fingers):  # Choose the best pointer finger
         sorted_fingers = sort_fingers_by_distance_from_screen(
