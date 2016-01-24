@@ -2,9 +2,9 @@
 # Leap Python mouse controller POC
 import sys
 from leap import Leap, Mouse
-from PalmControl import Palm_Control_Listener  # For palm-tilt based control
-from FingerControl import Finger_Control_Listener  # For finger-pointing control
-from MotionControl import Motion_Control_Listener  # For motion control
+from PalmControl import PalmControlListener  # For palm-tilt based control
+from FingerControl import FingerControlListener  # For finger-pointing control
+from MotionControl import MotionControlListener  # For motion control
 
 
 def show_help():
@@ -50,14 +50,14 @@ def main():
 
     # Create a custom listener object which controls the mouse
     if finger_mode:  # Finger pointer mode
-        listener = Finger_Control_Listener(Mouse, smooth_aggressiveness=smooth_aggressiveness,
-                                           smooth_falloff=smooth_falloff)
+        listener = FingerControlListener(Mouse, smooth_aggressiveness=smooth_aggressiveness,
+                                         smooth_falloff=smooth_falloff)
         print "Using finger mode..."
     elif palm_mode:  # Palm control mode
-        listener = Palm_Control_Listener(Mouse)
+        listener = PalmControlListener(Mouse)
         print "Using palm mode..."
     elif motion_mode:  # Motion control mode
-        listener = Motion_Control_Listener(Mouse)
+        listener = MotionControlListener(Mouse)
         print "Using motion mode..."
 
     controller = Leap.Controller()  # Get a Leap controller
