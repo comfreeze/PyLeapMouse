@@ -6,31 +6,20 @@
 import math
 from leap import Leap, Mouse
 from MiscFunctions import *
-from Xlib import display
 
-# d = display.Display()
-# print 'Screens Detected: {}'.format(d.screen_count())
-# s = d.screen()
 print 'Width: {}, Height: {}'.format(Mouse.GetDisplayWidth(), Mouse.GetDisplayHeight())
 
 
-# window = s.root.create_window(0, 0, 1, 1, 1, s.root_depth)
-# res = randr.get_screen_resources(window)
-# for mode in res.modes:
-#     w, h = mode.width, mode.height
-#     print "Width: {}, Height: {}".format(w, h)
-
-
 # The Listener that we attach to the controller. This listener is for pointer finger movement
-class FingerControlListener(Leap.Listener):
-    # Last Touch, Finger Count
+class DynamicControlListener(Leap.Listener):
+    # Last Touch, Dynamic Count
     lt, fc = 0, 0
-    # Finger Positions
+    # Dynamic Positions
     fstate = {'INDEX': False}
 
     def __init__(self, mouse, aggressiveness=8, falloff=1.3):
         # Initialize like a normal listener
-        super(FingerControlListener, self).__init__()
+        super(DynamicControlListener, self).__init__()
         # Initialize a bunch of stuff specific to this implementation
         self.screen = None
         self.screen_resolution = (Mouse.GetDisplayWidth(), Mouse.GetDisplayHeight())
@@ -108,7 +97,7 @@ class FingerControlListener(Leap.Listener):
                 self.fstate['INDEX'] = False if self.fstate['INDEX'] else True
                 self.cursor.set_left_button_pressed(self.fstate['INDEX'])
             print 'Normalized Position: {} x {}'.format(new_x, new_y)
-            print 'Finger: {}, {}, {}'.format(finger.id, self.finger_type(finger), self.touch_zone(finger))
+            print 'Dynamic: {}, {}, {}'.format(finger.id, self.finger_type(finger), self.touch_zone(finger))
 
             # if finger.touch_zone > 0:
             #     if finger.touch_zone == 1:
@@ -122,7 +111,7 @@ class FingerControlListener(Leap.Listener):
             #             y_scroll = self.velocity_to_scroll_amount(finger_velocity.y)
             #             self.cursor.scroll(x_scroll, y_scroll)
             #         else:
-            #             print "Finger count: %s" % finger_count
+            #             print "Dynamic count: %s" % finger_count
             #     elif finger.touch_zone == 2:
             #         if finger_count == 1:
             #             self.cursor.set_left_button_pressed(True)
