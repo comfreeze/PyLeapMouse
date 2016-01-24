@@ -68,23 +68,33 @@ class ColorUtil(object):
 clr = ColorUtil
 
 
-def spacer(wall=clr.w('|'), fill=' ', fill_color=clr.b()):
-    return wall + fill_color + string.center('' + fill_color, console_width - 30, fill) + wall + END
+def spacer(wall=None, fill=' ', fill_color=clr.b()):
+    if wall is None:
+        wall = clr.w('|')
+    return wall + fill_color + string.center('' + fill_color, console_width - 10, fill) + wall + END
 
 
-def header(title='PyLeapMouse', wall=clr.w('.'), fill='-', fill_color=clr.b()):
+def header(title=None, wall=None, fill='-', fill_color=clr.b()):
+    if title is None:
+        title = 'PyLeapMouse'
+    if wall is None:
+        wall = clr.w('.')
     return wall + fill_color + string.ljust(build_title(title) + fill_color, console_width, fill) + wall + END
 
 
-def footer(title='PyLeapMouse', wall=clr.w('\''), fill='-', fill_color=clr.b()):
-    return wall + fill_color + string.ljust(build_title(title) + fill_color, console_width, fill) + wall + END
+def footer(title=None, wall=None, fill='-', fill_color=clr.b()):
+    if title is None:
+        title = 'PyLeapMouse'
+    if wall is None:
+        wall = clr.w('\'')
+    return wall + fill_color + (build_title(title) + fill_color).ljust(console_width, fill) + wall + END
 
 
 def heading(title='', wall=clr.w('|'), fill_color=clr.b(), fill='-',
             surround_left=clr.c('>=-'),
             surround_right=clr.c('-=<')):
     return wall + surround_left + fill_color \
-           + string.rjust(build_title(title) + fill_color, console_width - 6, fill) \
+           + (build_title(title) + fill_color).rjust(console_width - 6, fill) \
            + surround_right + wall + END
 
 
@@ -97,8 +107,17 @@ def build_title(title='',
 def build_definition(key='', value='', wall=clr.w('|'), fill_color=clr.w(),
                      fill='_', text_color=clr.y(), label_color=clr.y()):
     return wall + ' ' + label_color + key + fill_color + ' ' \
-           + string.rjust(' ' + text_color + value, console_width - len(key) - 13, fill) \
+           + (' ' + text_color + value).rjust(console_width - len(key) - 13, fill) \
            + ' ' + wall + END
+
+
+def build_status(value, key='', fill='.', wall=clr.w('|'), fill_color=clr.w(),
+                 text_color=clr.y(), label_color=clr.y()):
+    return wall + ' ' + label_color + (
+            string.ljust(value, console_width + fill_color, fill)
+            if key is '' or key is None else
+            value + fill_color + ' ' + (' ' + text_color + key + fill_color).rjust(console_width - len(value) - 8, fill)) \
+            + ' ' + wall + END
 
 
 def build_error(message, title='ERROR'):
@@ -113,19 +132,6 @@ def build_info(message, title='INFO'):
     return build_definition(title, message)
 
 
-def build_status_message(key='', value='', fill='_', wall=clr.w('|'), fill_color=clr.w(),
-                         text_color=clr.y(), label_color=clr.y()):
-    return wall + ' ' + label_color + value + fill_color + ' ' \
-           + (string.ljust(' ' + text_color + key + fill_color, console_width - len(value) - 8, fill)
-              if key is '' or key is None else
-              string.rjust(' ' + text_color + key + fill_color, console_width - len(value) - 8, fill)) + ' ' \
-           + wall + END
-
-
-def build_status(message, title=''):
-    return build_status_message(title, message, '.')
-
-
 def show_help():
     print header()
     print "Use --finger (or blank) for pointer finger control, and --palm for palm control."
@@ -135,40 +141,51 @@ def show_help():
     print footer()
 
 
-def show_info(mode, title='Current Settings'):
-    # header()
+def show_info(mode, title='Current Settings', wall=clr.w('|')):
+    print spacer()
+    print header(title, wall)
     show_status_dictionary({
         'aggression': str(mode.aggressiveness),
         'falloff': str(mode.falloff),
         'width': str(console_width),
-    }, title)
+    }, title, fill='-', fill_color=clr.m())
     show_status_dictionary({
         'screen width': str(Mouse.GetDisplayWidth()),
         'screen height': str(Mouse.GetDisplayHeight())
     }, 'Resolution')
-    # footer()
+    print spacer()
+    print footer(title, wall)
+    print spacer()
 
 
-def show_dictionary(items, title=''):
+def show_dictionary(items, title='', wall=clr.w('|'), fill_color=clr.w(),
+                    fill='_', text_color=clr.y(), label_color=clr.y()):
+    print spacer()
     print heading(title)
+    print spacer()
     for k, v in items.iteritems():
-        print build_definition(k, v)
+        print build_definition(k, v, wall, fill_color, fill, text_color, label_color)
 
 
-def show_status_dictionary(items, title=''):
+def show_status_dictionary(items, title='', fill='.', wall=clr.w('|'), fill_color=clr.w(),
+                           text_color=clr.y(), label_color=clr.y()):
+    print spacer()
     print heading(title)
+    print spacer()
     for k, v in items.iteritems():
-        print build_status(k, v)
+        print build_status(k, v, fill, wall, fill_color, text_color, label_color)
 
 
-def console_help(control=None):
+def console_help(control=None, wall=None):
     global controls, commands, customizations
-    print header()
+    print header(control, wall)
+    print spacer()
     if control is None:
         show_dictionary(controls, "Control Options")
         show_dictionary(commands, "Commands")
         show_dictionary(customizations, "Customizations")
-    print footer()
+    print spacer()
+    print footer(control, wall)
 
 
 def get_input(prompt=''):

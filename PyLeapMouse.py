@@ -52,7 +52,8 @@ def main():
     while True:
         # Define the listener object which controls the mouse
         if changed:
-            UI.header(mode.get_mode_string())
+            print UI.spacer(wall='')
+            print UI.header(mode.get_mode_string())
             try:
                 if mode.is_dynamic():  # Dynamic pointer mode
                     listener = DynamicControlListener(
@@ -85,7 +86,8 @@ def main():
     if listener is not None:
         # Remove the listener when done
         controller.remove_listener(listener)
-        UI.footer(mode.get_mode_string())
+        print UI.footer(mode.get_mode_string())
+        print UI.spacer(wall='')
 
 
 def set_mode(mode, value):
@@ -100,7 +102,8 @@ def set_mode(mode, value):
     if changed:
         # Remove previous listener
         controller.remove_listener(listener)
-        UI.footer(mode.get_mode_string())
+        print UI.footer(mode.get_mode_string())
+        print UI.spacer(wall='')
     mode.set_mode(value)
     return mode
 
@@ -144,7 +147,7 @@ def prompt(mode):
             key, value = choice.split(' ', 1)
             UI.console_help(control=value)
         else:
-            UI.console_help()
+            UI.console_help(wall=UI.clr.w('|'))
     return mode
 
 main()
