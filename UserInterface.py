@@ -26,6 +26,8 @@ customizations = {
 # Initialize console colorization
 colors.init(autoreset=True)
 END = colors.Fore.RESET + colors.Style.RESET_ALL
+CURSOR_UP_ONE = '\x1b[1A'
+ERASE_LINE = '\x1b[2K'
 
 
 class ColorUtil(object):
@@ -189,18 +191,20 @@ def console_help(control=None, wall=None):
 
 
 def get_input(prompt=''):
-    fd = sys.stdin
-    if fd.isatty():
-        old = termios.tcgetattr(fd)
-        new = termios.tcgetattr(fd)
-        new[3] = new[3] & ~termios.ECHO
-        try:
-            termios.tcsetattr(fd, termios.TCSANOW, new)
-            response = raw_input(prompt)
-            print '\r          \r',
-        finally:
-            termios.tcsetattr(fd, termios.TCSANOW, old)
-    else:
-        build_warning("Not a TTY")
-        response = fd.readline().rstrip()
+    response = raw_input(prompt)
+    print(CURSOR_UP_ONE + ERASE_LINE + CURSOR_UP_ONE)
+    # fd = sys.stdin
+    # if fd.isatty():
+    #     old = termios.tcgetattr(fd)
+    #     new = termios.tcgetattr(fd)
+    #     new[3] = new[3] & ~termios.ECHO
+    #     try:
+    #         termios.tcsetattr(fd, termios.TCSANOW, new)
+    #         response = raw_input(prompt)
+    #         print '\r          \r',
+    #     finally:
+    #         termios.tcsetattr(fd, termios.TCSANOW, old)
+    # else:
+    #     build_warning("Not a TTY")
+    #     response = fd.readline().rstrip()
     return response
