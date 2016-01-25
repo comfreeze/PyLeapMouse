@@ -39,8 +39,7 @@ class DynamicControlListener(Leap.Listener):
 
     def on_connect(self, controller):
         print UI.build_status(self.__class__.__name__, " Connected")
-        print UI.spacer(wall=UI.clr.w('|'))
-        print UI.spacer(wall=UI.clr.w('|'))
+        UI.stream_prime(4)  # Prepare empty lines for
         controller.enable_gesture(Leap.Gesture.TYPE_KEY_TAP)
 
     def on_disconnect(self, controller):
@@ -100,42 +99,12 @@ class DynamicControlListener(Leap.Listener):
                 and self.fstate[finger.id] != f_state \
                 or finger.id not in self.fstate.keys():
             self.fstate[finger.id] = '{}'.format(f_state)
-            # if self.touch_zone(finger) == 'NONE':
-            #     self.cursor.set_left_button_pressed(False)
-            # elif finger.is_extended:
-            #     self.fstate['INDEX'] = False if self.fstate['INDEX'] else True
-            #     self.cursor.set_left_button_pressed(self.fstate['INDEX'])
-        UI.erase_line_up(2)
-        print UI.build_status('Position', '{} x {}'.format(new_x, new_y))
-        print UI.build_status('Finger', '{}, {}, {}'.format(finger.id, self.finger_type(finger), self.touch_zone(finger)))
-
-            # if finger.touch_zone > 0:
-            #     if finger.touch_zone == 1:
-            #         self.cursor.set_left_button_pressed(False)
-            #         if finger_count < 5:
-            #             self.cursor.move(normalized_position.x * self.screen_resolution[0],
-            #             self.screen_resolution[1] - normalized_position.y * self.screen_resolution[1])
-            #         elif finger_count == 5:
-            #             finger_velocity = finger.tip_velocity
-            #             x_scroll = self.velocity_to_scroll_amount(finger_velocity.x)
-            #             y_scroll = self.velocity_to_scroll_amount(finger_velocity.y)
-            #             self.cursor.scroll(x_scroll, y_scroll)
-            #         else:
-            #             print "Dynamic count: %s" % finger_count
-            #     elif finger.touch_zone == 2:
-            #         if finger_count == 1:
-            #             self.cursor.set_left_button_pressed(True)
-            #         elif finger_count == 2:
-            #             self.cursor.set_left_button_pressed(True)
-            #             self.cursor.move(normalized_position.x * self.screen_resolution[0],
-            #             self.screen_resolution[1] - normalized_position.y * self.screen_resolution[1])
-            # if(finger.touch_distance > -0.3 and finger.touch_zone != Leap.Pointable.ZONE_NONE):
-            # self.cursor.set_left_button_pressed(False)
-            # self.cursor.move(normalized_position.x * self.screen_resolution[0],
-            # self.screen_resolution[1] - normalized_position.y * self.screen_resolution[1])
-            # elif(finger.touch_distance <= -0.4):
-            # self.cursor.set_left_button_pressed(True)
-            #    print finger.touch_distance
+        UI.stream_updates({
+            'Position': '{} x {}'.format(new_x, new_y),
+            'Finger ID': '{}'.format(finger.id),
+            'Finger Type': self.finger_type(finger),
+            'Touch Zone': self.touch_zone(finger)
+        })
 
     def do_scroll_stuff(self, hand):  # Take a hand and use it as a scroller
         fingers = hand.fingers  # The list of fingers on said hand

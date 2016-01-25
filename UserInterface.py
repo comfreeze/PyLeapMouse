@@ -171,9 +171,10 @@ def show_dictionary(items, title='', wall=clr.w('|'), fill_color=clr.w(),
 
 def show_status_dictionary(items, title='', fill='.', wall=clr.w('|'), fill_color=clr.w(),
                            text_color=clr.y(), label_color=clr.y()):
-    print spacer()
-    print heading(title)
-    print spacer()
+    if title is not None and title is not '':
+        print spacer()
+        print heading(title)
+        print spacer()
     for k, v in items.iteritems():
         print build_status(k, v, fill, wall, fill_color, text_color, label_color)
 
@@ -215,3 +216,13 @@ def get_input(prompt=''):
     #     build_warning("Not a TTY")
     #     response = fd.readline().rstrip()
     return response
+
+
+def stream_prime(count=1, wall=clr.w('|')):
+    for i in range(count):
+        print spacer(wall)
+
+
+def stream_updates(data):
+    erase_line_up(len(data))
+    show_status_dictionary(data)
