@@ -47,14 +47,14 @@ class MotionControlListener(
         if not frame.hands.is_empty:  # Make sure we have some hands to work with
             for command in self.commands:  # Loop all enabled commands
                 if command.applicable(frame):  # If the motion associated to the command is triggered
-                    print 'Executing ' + command.name
+                    print UI.build_status('Executing', command.name)
                     self.execute(frame, command.name)  # Execute the command
 
     def execute(self, frame, command_name):
         number_for_fingers = self.get_fingers_code(frame)  # Get a text correspond to the number of fingers
         if self.config.has_option(command_name, number_for_fingers):  # If the command if found in the config file
             syscmd = self.config.get(command_name, number_for_fingers)  # Prepare the command
-            print(syscmd)
+            print UI.build_status('Command', syscmd)
             os.system(syscmd)  # Execute the command
 
     @staticmethod

@@ -12,6 +12,7 @@ from DynamicControl import DynamicControlListener  # For dynamic controls
 listener = None
 controller = None
 changed = True
+running = True
 
 
 def main():
@@ -49,7 +50,7 @@ def main():
     controller.set_policy_flags(Leap.Controller.POLICY_BACKGROUND_FRAMES)
 
     # Input loop
-    while True:
+    while running:
         # Define the listener object which controls the mouse
         if changed:
             print UI.spacer(wall='')
@@ -71,13 +72,14 @@ def main():
                     listener = PalmControlListener(Mouse)
                 elif mode.is_motion():  # Motion control mode
                     listener = MotionControlListener(Mouse)
-                elif mode.is_none():  # Mode is not set
-                    break
+                # elif mode.is_none():  # Mode is not set
+                #     break
             except Exception as e:
                 print UI.build_error('{}'.format(e.message))
 
             # print UI.build_status('Adding listener')
-            controller.add_listener(listener)  # Attach the listener
+            if listener is not None:
+                controller.add_listener(listener)  # Attach the listener
             changed = False
 
         # Display options menu and await input
@@ -92,16 +94,19 @@ def main():
 
 def set_mode(mode, value):
     global listener, controller, changed
-    if not mode.is_none():
-        if listener is not None and \
-                (listener.__class__ is not DynamicControlListener.__class__ and mode.is_dynamic()) or \
-                (listener.__class__ is not FingerControlListener.__class__ and mode.is_finger()) or \
-                (listener.__class__ is not MotionControlListener.__class__ and mode.is_motion()) or \
-                (listener.__class__ is not PalmControlListener.__class__ and mode.is_palm()):
-            changed = True
+    if listener is not None and \
+            (listener.__class__ is not DynamicControlListener.__class__ and mode.is_dynamic()) or \
+            (listener.__class__ is not FingerControlListener.__class__ and mode.is_finger()) or \
+            (listener.__class__ is not MotionControlListener.__class__ and mode.is_motion()) or \
+            (listener.__class__ is not PalmControlListener.__class__ and mode.is_palm()):
+        changed = True
+        if listener is not None:
+            # Remove previous listener
+            controller.remove_listener(listener)
+            listener = None
+    elif listener is None and mode.mode is None and value is not None:
+        changed = True
     if changed:
-        # Remove previous listener
-        controller.remove_listener(listener)
         print UI.footer(mode.get_mode_string())
         print UI.spacer(wall='')
     mode.set_mode(value)
@@ -111,17 +116,20 @@ def set_mode(mode, value):
 def prompt(mode):
     # Keep this process running until Enter is pressed
     # print UI.BAR_WHITE + UI.GT_WHITE + ' '
+    global running
     choice = UI.get_input()  # sys.stdin.readline()
     if "dynamic" in choice:
-        set_mode(mode, MouseMode.MODE_DYNAMIC)
+        mode = set_mode(mode, MouseMode.MODE_DYNAMIC)
     if "finger" in choice:
-        set_mode(mode, MouseMode.MODE_FINGER)
+        mode = set_mode(mode, MouseMode.MODE_FINGER)
     if "motion" in choice:
-        set_mode(mode, MouseMode.MODE_MOTION)
+        mode = set_mode(mode, MouseMode.MODE_MOTION)
     if "palm" in choice:
-        set_mode(mode, MouseMode.MODE_PALM)
+        mode = set_mode(mode, MouseMode.MODE_PALM)
     if "quit" in choice or "exit" in choice:
-        set_mode(mode, None)
+        running = False
+    if "stop" in choice:
+        mode = set_mode(mode, None)
     if "info" in choice:
         UI.show_info(mode)
     if "falloff" in choice:

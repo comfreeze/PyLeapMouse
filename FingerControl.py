@@ -107,8 +107,8 @@ class FingerControlListener(Leap.Listener):
             elif finger.is_extended:
                 self.fstate['INDEX'] = False if self.fstate['INDEX'] else True
                 self.cursor.set_left_button_pressed(self.fstate['INDEX'])
-            print 'Normalized Position: {} x {}'.format(new_x, new_y)
-            print 'Finger: {}, {}, {}'.format(finger.id, self.finger_type(finger), self.touch_zone(finger))
+            print UI.build_status('Position', '{} x {}'.format(new_x, new_y))
+            print UI.build_status('Finger', '{}, {}, {}'.format(finger.id, self.finger_type(finger), self.touch_zone(finger)))
 
             # if finger.touch_zone > 0:
             #     if finger.touch_zone == 1:
