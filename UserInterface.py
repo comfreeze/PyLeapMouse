@@ -190,9 +190,16 @@ def console_help(control=None, wall=None):
     print footer(control, wall)
 
 
+def erase_line_up(n=1):
+    i = 0
+    while i < n:
+        i += 1
+        print CURSOR_UP_ONE + ERASE_LINE + CURSOR_UP_ONE
+
+
 def get_input(prompt=''):
     response = raw_input(prompt)
-    print(CURSOR_UP_ONE + ERASE_LINE + CURSOR_UP_ONE)
+    erase_line_up()
     # fd = sys.stdin
     # if fd.isatty():
     #     old = termios.tcgetattr(fd)

@@ -39,6 +39,9 @@ class DynamicControlListener(Leap.Listener):
 
     def on_connect(self, controller):
         print UI.build_status(self.__class__.__name__, " Connected")
+        print UI.spacer(wall=UI.clr.w('|'))
+        print UI.spacer(wall=UI.clr.w('|'))
+        controller.enable_gesture(Leap.Gesture.TYPE_KEY_TAP)
 
     def on_disconnect(self, controller):
         print UI.build_status(self.__class__.__name__, " Disconnected")
@@ -102,8 +105,9 @@ class DynamicControlListener(Leap.Listener):
             # elif finger.is_extended:
             #     self.fstate['INDEX'] = False if self.fstate['INDEX'] else True
             #     self.cursor.set_left_button_pressed(self.fstate['INDEX'])
-            print UI.build_status('Normalized Position', '{} x {}'.format(new_x, new_y))
-            print UI.build_status('Dynamic', '{}, {}, {}'.format(finger.id, self.finger_type(finger), self.touch_zone(finger)))
+        UI.erase_line_up(2)
+        print UI.build_status('Position', '{} x {}'.format(new_x, new_y))
+        print UI.build_status('Finger', '{}, {}, {}'.format(finger.id, self.finger_type(finger), self.touch_zone(finger)))
 
             # if finger.touch_zone > 0:
             #     if finger.touch_zone == 1:
