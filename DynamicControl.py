@@ -39,7 +39,12 @@ class DynamicControlListener(Leap.Listener):
 
     def on_connect(self, controller):
         print UI.build_status(self.__class__.__name__, " Connected")
-        UI.stream_prime(4)  # Prepare empty lines for
+        UI.show_status_dictionary({
+            'Position': 'X x Y',
+            'Finger ID': ' ',
+            'Finger Type': ' ',
+            'Touch Zone': ' '
+        })
         controller.enable_gesture(Leap.Gesture.TYPE_KEY_TAP)
 
     def on_disconnect(self, controller):

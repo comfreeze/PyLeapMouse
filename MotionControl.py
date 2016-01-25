@@ -1,10 +1,13 @@
 import sys, os, ConfigParser
 import UserInterface as UI
-from leap import Leap, CircleGesture, KeyTapGesture, ScreenTapGesture, SwipeGesture
+from leap import Leap, ScreentapCommand, SwiperightCommand, SwipeleftCommand, CounterclockwiseCommand, ClockwiseCommand, KeytapCommand
 
 
-class MotionControlListener(
-        Leap.Listener):  # The Listener that we attach to the controller. This listener is for motion control
+# The Listener that we attach to the controller. This listener is for motion control
+class MotionControlListener(Leap.Listener):
+    last_command = None
+    last_count = 0
+
     def __init__(self, mouse):
         super(MotionControlListener, self).__init__()  # Initialize like a normal listener
 
@@ -29,12 +32,13 @@ class MotionControlListener(
         ]
 
     def on_connect(self, controller):
+        print UI.build_status(self.__class__.__name__, " Connected")
         # Enable all gestures
         controller.enable_gesture(Leap.Gesture.TYPE_CIRCLE)
         controller.enable_gesture(Leap.Gesture.TYPE_KEY_TAP)
         controller.enable_gesture(Leap.Gesture.TYPE_SCREEN_TAP)
         controller.enable_gesture(Leap.Gesture.TYPE_SWIPE)
-        print UI.build_status(self.__class__.__name__, " Connected")
+        UI.stream_updates({'Executing': ' '})
 
     def on_disconnect(self, controller):
         print UI.build_status(self.__class__.__name__, " Disconnected")
@@ -47,7 +51,12 @@ class MotionControlListener(
         if not frame.hands.is_empty:  # Make sure we have some hands to work with
             for command in self.commands:  # Loop all enabled commands
                 if command.applicable(frame):  # If the motion associated to the command is triggered
-                    print UI.build_status('Executing', command.name)
+                    if self.last_command is not command.name:
+                        self.last_count = 0
+                        self.last_command = command.name
+                    else:
+                        self.last_count += 1
+                    UI.stream_updates({'Executing': '{} x {}'.format(command.name, self.last_count)})
                     self.execute(frame, command.name)  # Execute the command
 
     def execute(self, frame, command_name):
@@ -60,76 +69,3 @@ class MotionControlListener(
     @staticmethod
     def get_fingers_code(frame):
         return "%dfinger" % len(frame.fingers)
-
-
-class ScreentapCommand():
-    def __init__(self):
-        self.name = "screentap"
-        # The name of the command in the config file
-
-    # Return true if the command is applicable
-    @staticmethod
-    def applicable(frame):
-        return frame.gestures()[0].type == Leap.Gesture.TYPE_SCREEN_TAP
-
-
-class KeytapCommand():
-    def __init__(self):
-        self.name = "keytap"  # The name of the command in the config file
-
-    # Return true if the command is applicable
-    @staticmethod
-    def applicable(frame):
-        return frame.gestures()[0].type == Leap.Gesture.TYPE_KEY_TAP
-
-
-class SwiperightCommand():
-    def __init__(self):
-        self.name = "swiperight"  # The name of the command in the config file
-
-    # Return true if the command is applicable
-    @staticmethod
-    def applicable(frame):
-        swipe = SwipeGesture(frame.gestures()[0])
-        return (swipe.state == Leap.Gesture.STATE_STOP
-                and swipe.type == Leap.Gesture.TYPE_SWIPE
-                and swipe.direction[0] < 0)
-
-
-class SwipeleftCommand():
-    def __init__(self):
-        self.name = "swipeleft"  # The name of the command in the config file
-
-    # Return true if the command is applicable
-    @staticmethod
-    def applicable(frame):
-        swipe = SwipeGesture(frame.gestures()[0])
-        return (swipe.state == Leap.Gesture.STATE_STOP
-                and swipe.type == Leap.Gesture.TYPE_SWIPE
-                and swipe.direction[0] > 0)
-
-
-class ClockwiseCommand():
-    def __init__(self):
-        self.name = "clockwise"  # The name of the command in the config file
-
-    # Return true if the command is applicable
-    @staticmethod
-    def applicable(frame):
-        circle = CircleGesture(frame.gestures()[0])
-        return (circle.state == Leap.Gesture.STATE_STOP and
-                circle.type == Leap.Gesture.TYPE_CIRCLE and
-                circle.pointable.direction.angle_to(circle.normal) <= Leap.PI / 4)
-
-
-class CounterclockwiseCommand():
-    def __init__(self):
-        self.name = "counterclockwise"  # The name of the command in the config file
-
-    # Return true if the command is applicable
-    @staticmethod
-    def applicable(frame):
-        circle = CircleGesture(frame.gestures()[0])
-        return (circle.state == Leap.Gesture.STATE_STOP and
-                circle.type == Leap.Gesture.TYPE_CIRCLE and
-                circle.pointable.direction.angle_to(circle.normal) > Leap.PI / 4)
