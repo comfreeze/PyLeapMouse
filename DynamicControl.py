@@ -1,12 +1,13 @@
-# William Yager
+# James Zimmerman II
 # Leap Python mouse controller POC
-# This file is for pointer-finger-based control (--finger and default)
+# This file is for dynamic-pointer control (--dynamic)
 
 
+import os
 import math
 import UserInterface as UI
 import Geometry
-from leap import Leap, Mouse
+from leap import Leap, Mouse, KeytapCommand
 from MiscFunctions import *
 
 # print 'Width: {}, Height: {}'.format(Mouse.GetDisplayWidth(), Mouse.GetDisplayHeight())
@@ -18,6 +19,10 @@ class DynamicControlListener(Leap.Listener):
     lt, fc = 0, 0
     # Dynamic Positions
     fstate = {'INDEX': False}
+    last_hands = 0
+    last_command = None
+    last_count = 0
+    last_error = ' '
 
     def __init__(self, mouse, aggressiveness=8, falloff=1.3):
         # Initialize like a normal listener
@@ -39,12 +44,7 @@ class DynamicControlListener(Leap.Listener):
 
     def on_connect(self, controller):
         print UI.build_status(self.__class__.__name__, " Connected")
-        UI.show_status_dictionary({
-            'Position': 'X x Y',
-            'Finger ID': ' ',
-            'Finger Type': ' ',
-            'Touch Zone': ' '
-        })
+        self.stream_output()  # Primes output area
         controller.enable_gesture(Leap.Gesture.TYPE_KEY_TAP)
 
     def on_disconnect(self, controller):
@@ -78,37 +78,64 @@ class DynamicControlListener(Leap.Listener):
         return 'UNKNOWN'
 
     def on_frame(self, controller):
-        frame = controller.frame()  # Grab the latest 3D data
-        if not frame.hands.is_empty:  # Ensure a hand is available
-            if len(frame.hands) < 2:  # Single hand
-                self.do_mouse_stuff(frame.hands[0])
-            # else:  # 2+ hands
-        finger_count = len(frame.fingers)
-        if finger_count != self.fc:
-            self.fc = finger_count
-        if finger_count < 1:
-            self.fstate = {'INDEX': False}
-            return
-        finger = frame.fingers.frontmost
-        for f in frame.fingers:
-            if f.type == Leap.Finger.TYPE_INDEX:
-                finger = f
-        stabilized_position = finger.stabilized_tip_position
-        interaction_box = frame.interaction_box
-        normalized_position = interaction_box.normalize_point(stabilized_position)
-        f_state = '{}-{}'.format(self.finger_type(finger), self.touch_zone(finger))
-        new_x = normalized_position.x * self.screen_resolution[0]
-        new_y = self.screen_resolution[1] - normalized_position.y * self.screen_resolution[1]
-        self.cursor.move(new_x, new_y)
-        if finger.id in self.fstate.keys() \
-                and self.fstate[finger.id] != f_state \
-                or finger.id not in self.fstate.keys():
-            self.fstate[finger.id] = '{}'.format(f_state)
+        try:
+            frame = controller.frame()  # Grab the latest 3D data
+            if not frame.hands.is_empty:  # Ensure a hand is available
+                self.last_hands = len(frame.hands)
+                if KeytapCommand.applicable(frame):
+                    command = KeytapCommand()
+                    if self.last_command is not command.name:
+                        self.last_count = 0
+                        self.last_command = command.name
+                    else:
+                        self.last_count += 1
+                    self.stream_output()
+                    # self.execute(frame, command.name)  # Execute the command
+                if len(frame.hands) < 2:  # Single hand
+                    self.do_mouse_stuff(frame.hands[0])
+                # else:  # 2+ hands
+            else:
+                self.last_hands = 0
+            # finger_count = len(frame.fingers)
+            # if finger_count != self.fc:
+            #     self.fc = finger_count
+            # if finger_count < 1:
+            #     self.fstate = {'INDEX': False}
+            #     return
+            finger = frame.fingers.frontmost
+            for f in frame.fingers:
+                if f.type == Leap.Finger.TYPE_INDEX:
+                    finger = f
+            stabilized_position = finger.stabilized_tip_position
+            interaction_box = frame.interaction_box
+            normalized_position = interaction_box.normalize_point(stabilized_position)
+            # f_state = '{}-{}'.format(self.finger_type(finger), self.touch_zone(finger))
+            new_x = normalized_position.x * self.screen_resolution[0]
+            new_y = self.screen_resolution[1] - normalized_position.y * self.screen_resolution[1]
+            # self.cursor.move(new_x, new_y)
+            # if finger.id in self.fstate.keys() \
+            #         and self.fstate[finger.id] != f_state \
+            #         or finger.id not in self.fstate.keys():
+            #     self.fstate[finger.id] = '{}'.format(f_state)
+            self.stream_output(
+                position='{} x {}'.format(new_x, new_y),
+                finger_id='{}'.format(finger.id),
+                finger_type=self.finger_type(finger),
+                touch_zone=self.touch_zone(finger)
+            )
+        except Exception as e:
+            self.last_error = '{}'.format(e.message)
+            self.stream_output()
+
+    def stream_output(self, position='X x Y', finger_id=' ', finger_type=' ', touch_zone=' '):
         UI.stream_updates({
-            'Position': '{} x {}'.format(new_x, new_y),
-            'Finger ID': '{}'.format(finger.id),
-            'Finger Type': self.finger_type(finger),
-            'Touch Zone': self.touch_zone(finger)
+            'Hands': '{}'.format(self.last_hands),
+            'Position': position,
+            'Finger ID': finger_id,
+            'Finger Type': finger_type,
+            'Touch Zone': touch_zone,
+            'Command': '{} x {}'.format(self.last_command, self.last_count),
+            'Last Error': self.last_error
         })
 
     def do_scroll_stuff(self, hand):  # Take a hand and use it as a scroller
@@ -119,6 +146,13 @@ class DynamicControlListener(Leap.Listener):
             x_scroll = self.velocity_to_scroll_amount(finger_velocity.x)
             y_scroll = self.velocity_to_scroll_amount(finger_velocity.y)
             self.cursor.scroll(x_scroll, y_scroll)
+
+    def execute(self, frame, command_name):
+        number_for_fingers = self.get_fingers_code(frame)  # Get a text correspond to the number of fingers
+        if self.config.has_option(command_name, number_for_fingers):  # If the command if found in the config file
+            syscmd = self.config.get(command_name, number_for_fingers)  # Prepare the command
+            print UI.build_status('Command', syscmd)
+            os.system(syscmd)  # Execute the command
 
     @staticmethod
     def velocity_to_scroll_amount(velocity):  # Converts a finger velocity to a scroll velocity

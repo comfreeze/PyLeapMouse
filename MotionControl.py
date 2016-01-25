@@ -1,3 +1,7 @@
+# James Zimmerman II
+# Leap Python mouse controller POC
+# This file is for palm-tilt and gesture-based control (--palm)
+
 import sys, os, ConfigParser
 import UserInterface as UI
 from leap import Leap, ScreentapCommand, SwiperightCommand, SwipeleftCommand, CounterclockwiseCommand, ClockwiseCommand, KeytapCommand

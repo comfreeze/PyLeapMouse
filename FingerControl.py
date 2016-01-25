@@ -1,6 +1,6 @@
-# William Yager
+# James Zimmerman II
 # Leap Python mouse controller POC
-# This file is for pointer-finger-based control (--finger and default)
+# This file is for pointer-finger-based control (--finger)
 
 
 import math

@@ -1,4 +1,4 @@
-# William Yager
+# James Zimmerman II
 # Leap Python mouse controller POC
 # This file is for palm-tilt and gesture-based control (--palm)
 
