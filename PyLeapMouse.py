@@ -108,7 +108,6 @@ def set_mode(mode, value):
         changed = True
     if changed:
         print UI.footer(mode.get_mode_string())
-        print UI.spacer(wall='')
     mode.set_mode(value)
     return mode
 
@@ -116,46 +115,54 @@ def set_mode(mode, value):
 def prompt(mode):
     # Keep this process running until Enter is pressed
     # print UI.BAR_WHITE + UI.GT_WHITE + ' '
-    global running
+    global running, changed, listener
     choice = UI.get_input()  # sys.stdin.readline()
-    if "dynamic" in choice:
-        mode = set_mode(mode, MouseMode.MODE_DYNAMIC)
-    if "finger" in choice:
-        mode = set_mode(mode, MouseMode.MODE_FINGER)
-    if "motion" in choice:
-        mode = set_mode(mode, MouseMode.MODE_MOTION)
-    if "palm" in choice:
-        mode = set_mode(mode, MouseMode.MODE_PALM)
-    if "quit" in choice or "exit" in choice:
-        running = False
-    if "stop" in choice:
-        mode = set_mode(mode, None)
-    if "info" in choice:
-        UI.show_info(mode)
-    if "falloff" in choice:
-        key, value = choice.split(' ', 1)
-        try:
-            mode.set_falloff(float(value))
-            print UI.build_status('Updated falloff to', value)
-        except Exception as e:
-            print UI.build_error('{}'.format(e.message))
-    if "aggression" in choice:
-        key, value = choice.split(' ', 1)
-        try:
-            mode.set_aggressiveness(int(value))
-            print UI.build_status('Updated aggression to', value)
-        except Exception as e:
-            print UI.build_error('{}'.format(e.message))
-    if "width" in choice:
-        key, value = choice.split(' ', 1)
-        UI.console_width = int(value)
-        print UI.build_status('Updated console width to', value)
-    if "help" in choice:
-        if " " in choice:
-            key, value = choice.split(' ', 1)
-            UI.console_help(control=value)
+    newmode = mode.get_mode()
+    try:
+        if "help" in choice:
+            if " " in choice:
+                key, value = choice.split(' ', 1)
+                UI.console_help(control=value)
+            else:
+                UI.console_help(wall=UI.clr.w('|'))
+        elif "info" in choice:
+            UI.show_info(mode)
+        elif "quit" in choice or "exit" in choice:
+            running = False
         else:
-            UI.console_help(wall=UI.clr.w('|'))
+            if "stop" in choice or "pause" in choice:
+                newmode = None
+            elif "dynamic" in choice:
+                newmode = MouseMode.MODE_DYNAMIC
+            elif "finger" in choice:
+                newmode = MouseMode.MODE_FINGER
+            elif "motion" in choice:
+                newmode = MouseMode.MODE_MOTION
+            elif "palm" in choice:
+                newmode = MouseMode.MODE_PALM
+            elif "falloff" in choice:
+                key, value = choice.split(' ', 1)
+                mode.set_falloff(float(value))
+                print UI.build_status('Updated falloff to', value)
+            elif "aggression" in choice:
+                key, value = choice.split(' ', 1)
+                mode.set_aggressiveness(int(value))
+                print UI.build_status('Updated aggression to', value)
+            elif "width" in choice:
+                key, value = choice.split(' ', 1)
+                UI.console_width = int(value)
+                print UI.build_status('Updated console width to', value)
+            changed = True
+    except Exception as e:
+        print UI.build_error('{}'.format(e.message))
+    if mode.mode is not newmode:
+        set_mode(mode, newmode)
+    elif changed:
+        if listener is not None:
+            # Remove previous listener
+            controller.remove_listener(listener)
+            listener = None
+        print UI.footer(mode.get_mode_string())
     return mode
 
 main()
