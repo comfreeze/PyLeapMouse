@@ -1,9 +1,11 @@
 PyLeapMouse
 ===========
 
-wyager's Proof-of-concept code for a Leap Motion-based mouse controller. It now works with Linux, OS X and Windows.
+ComFreeze POC Project:  Leap Motion Mouse.  Tested on Linux, may works with on OS X and Windows.
 
-The most recent version is on Github at github.com/openleap/pyleapmouse.
+The most recent version is on Github at https://github.com/comfreeze/PyLeapMouse.
+
+This project was forked from OpenLeap's original repository at https://github.com/openleap/pyleapmouse
 
 ###Configuration:
 1. Launch the Leap app (if not launched already) and plug in your Leap
@@ -13,7 +15,20 @@ The most recent version is on Github at github.com/openleap/pyleapmouse.
 5. `cd` to the directory all this stuff is in and run `python PyLeapMouse.py` (minus quotes) or just double-click PyLeapMouse.py if you have your computer configured to launch .py files.
 6. Launch with the --palm argument to run in palm mode (with much more accurate two-handed control).
 
-###Usage with Finger Mode (python PyLeapMouse.py --finger) (default):
+###Interactive Console:
+The application features a rudimentary interactive console.  To switch modes while the application is active, simply type a mode `dynamic`, `finger`, `motion` or `palm` to switch.
+Other available commands are `info`, `quit`, `exit`, `stop`, `pause`, `help`.  Help will display much of the same information listed here, while info will list current settings details.
+Exit and stop differ, as `exit` will close the application, while `stop` will only remove the active listener but keep the console open for further commands.
+Other features may also be configured using settings commands, such as `width`, `falloff`, `aggression` followed by the new target value.
+
+
+###Usage with Dynamic Mode (python PyLeapMouse.py --dynamic) (default):
+1. Insert your hand into frame.
+2. The forwardmost finger that the program detects is the mouse finger. Where it points, the cursor goes.
+3. Stick your thumb out (see note) to click down, and fold your thumb in to click up.
+4. Using two pointer fingers (e.g. index and middle) goes into scroll mode, which is not very intuitive but shows how it might work. The fingertips must be within a short distance of each other to activate scroll mode.
+
+###Usage with Finger Mode (python PyLeapMouse.py --finger):
 1. Insert your hand into frame.
 2. The forwardmost finger that the program detects is the mouse finger. Where it points, the cursor goes.
 3. Stick your thumb out (see note) to click down, and fold your thumb in to click up.
@@ -63,25 +78,16 @@ Movements are associated with commands listed in a file `commands.ini` placed at
     4finger: rhythmbox-client --pause
     5finger: rhythmbox-client --pause
 
-Every commands could have a different behaviour if 1, 2, 3 ... 10 fingers are recognized but It's recommanded to use the same command for each number of fingers due to a lack of precision with Leap Motion.
+Every commands could have a different behaviour if 1, 2, 3 ... 10 fingers are recognized but It's recommended to use the same command for each number of fingers due to a lack of precision with Leap Motion.
 
 ###Notes:
-This is a spare-time project, so it's not perfect quality. However, I tried to keep the code clean and readable. Let me know if you find any bugs (which there are certainly at least a few of). You can reach me at  will (dot) yager (at) gmail (dot) (what the gmail domain ends in).
-The contents of the files are as follows:
-PyLeapMouse.py: The actual program
-FingerControl.py: Pointer-finger-control specific code
-PalmControl.py: Palm-tilt-control specific code
-Linux/OSX/Windows:
-    Various OS-specific Leap library files
-    Mouse.py: A set of generic commands and classes to abstract away from OS-Specific mouse commands
-Geometry.py: Geometric functions
-MiscFunctions.py: Things that aren't strictly geometry and aren't specific to any interface style
-README.md: You are here
+This is a spare-time project, so it's not perfect quality. However, I tried to keep the code clean and readable. Let me know if you find any bugs (which there are certainly at least a few of). You cannot reach me at, submit a PR or issue.
+I have included and unnecessary amount of console colorization which may not work well with other platforms and hope to address these later, with more time.
 
 ###Linux:
 For Ubuntu 15.04:
 ```
-apt-get install pip python-xlib
+apt-get install pip
 pip install pyuserinput
 ```
 
