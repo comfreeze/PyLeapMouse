@@ -95,10 +95,10 @@ def main():
 def set_mode(mode, value):
     global listener, controller, changed
     if listener is not None and \
-            (listener.__class__ is not DynamicControlListener.__class__ and mode.is_dynamic()) or \
-            (listener.__class__ is not FingerControlListener.__class__ and mode.is_finger()) or \
-            (listener.__class__ is not MotionControlListener.__class__ and mode.is_motion()) or \
-            (listener.__class__ is not PalmControlListener.__class__ and mode.is_palm()):
+            (mode.is_dynamic(listener) and mode.is_dynamic()) or \
+            (mode.is_finger(listener) and mode.is_finger()) or \
+            (mode.is_motion(listener) and mode.is_motion()) or \
+            (mode.is_palm(listener) and mode.is_palm()):
         changed = True
         if listener is not None:
             # Remove previous listener

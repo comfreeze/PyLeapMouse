@@ -43,17 +43,27 @@ class MouseMode(object):
     def get_falloff(self):
         return self.falloff
 
-    def is_dynamic(self):
+    def is_dynamic(self, listener=None):
+        if listener is not None:
+            return listener.__class__.__name__ is 'DynamicControlListener'
         return self.get_mode() == self.MODE_DYNAMIC
 
-    def is_finger(self):
+    def is_finger(self, listener=None):
+        if listener is not None:
+            return listener.__class__.__name__ is 'FingerControlListener'
         return self.get_mode() == self.MODE_FINGER
 
-    def is_motion(self):
+    def is_motion(self, listener=None):
+        if listener is not None:
+            return listener.__class__.__name__ is 'MotionControlListener'
         return self.get_mode() == self.MODE_MOTION
 
-    def is_palm(self):
+    def is_palm(self, listener=None):
+        if listener is not None:
+            return listener.__class__.__name__ is 'PalmControlListener'
         return self.get_mode() == self.MODE_PALM
 
-    def is_none(self):
+    def is_none(self, listener=None):
+        if listener is None:
+            return True
         return self.get_mode() is None
