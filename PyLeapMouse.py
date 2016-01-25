@@ -127,10 +127,10 @@ def prompt(mode):
                 UI.console_help(wall=UI.clr.w('|'))
         elif "info" in choice:
             UI.show_info(mode)
-        elif "quit" in choice or "exit" in choice:
-            running = False
         else:
-            if "stop" in choice or "pause" in choice:
+            if "quit" in choice or "exit" in choice:
+                running = False
+            elif "stop" in choice or "pause" in choice:
                 newmode = None
             elif "dynamic" in choice:
                 newmode = MouseMode.MODE_DYNAMIC
