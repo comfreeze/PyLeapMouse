@@ -7,9 +7,8 @@
 # from leap import Leap, Mouse
 # import Geometry
 import math
-import UserInterface as UI
-from leap import Leap
-from MiscFunctions import *
+
+from tools import *
 
 
 # The Listener that we attach to the controller. This listener is for palm tilt movement
@@ -24,16 +23,16 @@ class PalmControlListener(Leap.Listener):
         self.gesture_debouncer = NStateDebouncer(5, 3)
 
     def on_init(self, controller):
-        print UI.build_status(self.__class__.__name__, " Initialized")
+        print ui.build_status(self.__class__.__name__, " Initialized")
 
     def on_connect(self, controller):
-        print UI.build_status(self.__class__.__name__, " Connected")
+        print ui.build_status(self.__class__.__name__, " Connected")
 
     def on_disconnect(self, controller):
-        print UI.build_status(self.__class__.__name__, " Disconnected")
+        print ui.build_status(self.__class__.__name__, " Disconnected")
 
     def on_exit(self, controller):
-        print UI.build_status(self.__class__.__name__, " Exited")
+        print ui.build_status(self.__class__.__name__, " Exited")
 
     def on_frame(self, controller):
         frame = controller.frame()  # Grab the latest 3D data

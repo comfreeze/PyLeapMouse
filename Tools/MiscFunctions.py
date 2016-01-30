@@ -212,3 +212,27 @@ def finger_vectors_intersect(finger1, finger2, vector_length, tolerance):
     if minimum_distance <= tolerance:
         return True
     return False
+
+
+def finger_type(finger):
+    if finger.type == Leap.Finger.TYPE_THUMB:
+        return 'THUMB'
+    elif finger.type == Leap.Finger.TYPE_INDEX:
+        return 'INDEX'
+    elif finger.type == Leap.Finger.TYPE_MIDDLE:
+        return 'MIDDLE'
+    elif finger.type == Leap.Finger.TYPE_RING:
+        return 'RING'
+    elif finger.type == Leap.Finger.TYPE_PINKY:
+        return 'PINKY'
+    return 'UNKNOWN'
+
+
+def touch_zone(finger):
+    if finger.touch_zone == Leap.Finger.ZONE_NONE:
+        return 'NONE'
+    elif finger.touch_zone == Leap.Finger.ZONE_HOVERING:
+        return 'HOVERING'
+    elif finger.touch_zone == Leap.Finger.ZONE_TOUCHING:
+        return 'TOUCHING'
+    return 'UNKNOWN'

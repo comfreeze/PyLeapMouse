@@ -3,14 +3,12 @@
 # This file is for dynamic-pointer control (--dynamic)
 
 
-import os
 import math
-import UserInterface as UI
-import Geometry
-from leap import Leap, Mouse, KeytapCommand
-from MiscFunctions import *
+import os
 
-# print 'Width: {}, Height: {}'.format(Mouse.GetDisplayWidth(), Mouse.GetDisplayHeight())
+from tools import *
+from leap import Mouse
+from commands import KeytapCommand
 
 
 # The Listener that we attach to the controller. This listener is for pointer finger movement
@@ -40,18 +38,18 @@ class DynamicControlListener(Leap.Listener):
         self.most_recent_pointer_finger_id = None
 
     def on_init(self, controller):
-        print UI.build_status(self.__class__.__name__, " Initialized")
+        print ui.build_status(self.__class__.__name__, " Initialized")
 
     def on_connect(self, controller):
-        print UI.build_status(self.__class__.__name__, " Connected")
+        print ui.build_status(self.__class__.__name__, " Connected")
         self.stream_output()  # Primes output area
         controller.enable_gesture(Leap.Gesture.TYPE_KEY_TAP)
 
     def on_disconnect(self, controller):
-        print UI.build_status(self.__class__.__name__, " Disconnected")
+        print ui.build_status(self.__class__.__name__, " Disconnected")
 
     def on_exit(self, controller):
-        print UI.build_status(self.__class__.__name__, " Exited")
+        print ui.build_status(self.__class__.__name__, " Exited")
 
     @staticmethod
     def finger_type(finger):
@@ -128,7 +126,7 @@ class DynamicControlListener(Leap.Listener):
             self.stream_output()
 
     def stream_output(self, position='X x Y', finger_id=' ', finger_type=' ', touch_zone=' '):
-        UI.stream_updates({
+        ui.stream_updates({
             'Hands': '{}'.format(self.last_hands),
             'Position': position,
             'Finger ID': finger_id,
@@ -151,7 +149,7 @@ class DynamicControlListener(Leap.Listener):
         number_for_fingers = self.get_fingers_code(frame)  # Get a text correspond to the number of fingers
         if self.config.has_option(command_name, number_for_fingers):  # If the command if found in the config file
             syscmd = self.config.get(command_name, number_for_fingers)  # Prepare the command
-            print UI.build_status('Command', syscmd)
+            print ui.build_status('Command', syscmd)
             os.system(syscmd)  # Execute the command
 
     @staticmethod
@@ -168,8 +166,8 @@ class DynamicControlListener(Leap.Listener):
 
     def do_mouse_stuff(self, hand):
         hpn = hand.palm_normal
-        d = Geometry.Vector(hpn.x, hpn.y, hpn.z)
-        mouse_velocity = Geometry.angles_to_velocity(d.roll(), d.pitch())
+        d = geo.Vector(hpn.x, hpn.y, hpn.z)
+        mouse_velocity = geo.angles_to_velocity(d.roll(), d.pitch())
         self.cursor.move(mouse_velocity[0], mouse_velocity[1])
         # # Take a hand and use it as a mouse
         # fingers = hand.fingers  # The list of fingers on said hand

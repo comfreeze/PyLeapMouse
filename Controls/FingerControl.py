@@ -4,21 +4,9 @@
 
 
 import math
-import UserInterface as UI
-from leap import Leap, Mouse
-from MiscFunctions import *
-from Xlib import display
 
-# d = display.Display()
-# print 'Screens Detected: {}'.format(d.screen_count())
-# s = d.screen()
-
-
-# window = s.root.create_window(0, 0, 1, 1, 1, s.root_depth)
-# res = randr.get_screen_resources(window)
-# for mode in res.modes:
-#     w, h = mode.width, mode.height
-#     print "Width: {}, Height: {}".format(w, h)
+from tools import *
+from leap import Mouse
 
 
 # The Listener that we attach to the controller. This listener is for pointer finger movement
@@ -44,40 +32,16 @@ class FingerControlListener(Leap.Listener):
         self.most_recent_pointer_finger_id = None
 
     def on_init(self, controller):
-        print UI.build_status(self.__class__.__name__, " Initialized")
+        print ui.build_status(self.__class__.__name__, " Initialized")
 
     def on_connect(self, controller):
-        print UI.build_status(self.__class__.__name__, " Connected")
+        print ui.build_status(self.__class__.__name__, " Connected")
 
     def on_disconnect(self, controller):
-        print UI.build_status(self.__class__.__name__, " Disconnected")
+        print ui.build_status(self.__class__.__name__, " Disconnected")
 
     def on_exit(self, controller):
-        print UI.build_status(self.__class__.__name__, " Exited")
-
-    @staticmethod
-    def finger_type(finger):
-        if finger.type == Leap.Finger.TYPE_THUMB:
-            return 'THUMB'
-        elif finger.type == Leap.Finger.TYPE_INDEX:
-            return 'INDEX'
-        elif finger.type == Leap.Finger.TYPE_MIDDLE:
-            return 'MIDDLE'
-        elif finger.type == Leap.Finger.TYPE_RING:
-            return 'RING'
-        elif finger.type == Leap.Finger.TYPE_PINKY:
-            return 'PINKY'
-        return 'UNKNOWN'
-
-    @staticmethod
-    def touch_zone(finger):
-        if finger.touch_zone == Leap.Finger.ZONE_NONE:
-            return 'NONE'
-        elif finger.touch_zone == Leap.Finger.ZONE_HOVERING:
-            return 'HOVERING'
-        elif finger.touch_zone == Leap.Finger.ZONE_TOUCHING:
-            return 'TOUCHING'
-        return 'UNKNOWN'
+        print ui.build_status(self.__class__.__name__, " Exited")
 
     def on_frame(self, controller):
         frame = controller.frame()  # Grab the latest 3D data
@@ -107,8 +71,8 @@ class FingerControlListener(Leap.Listener):
             elif finger.is_extended:
                 self.fstate['INDEX'] = False if self.fstate['INDEX'] else True
                 self.cursor.set_left_button_pressed(self.fstate['INDEX'])
-            print UI.build_status('Position', '{} x {}'.format(new_x, new_y))
-            print UI.build_status('Finger', '{}, {}, {}'.format(finger.id, self.finger_type(finger), self.touch_zone(finger)))
+            print ui.build_status('Position', '{} x {}'.format(new_x, new_y))
+            print ui.build_status('Finger', '{}, {}, {}'.format(finger.id, self.finger_type(finger), self.touch_zone(finger)))
 
             # if finger.touch_zone > 0:
             #     if finger.touch_zone == 1:
